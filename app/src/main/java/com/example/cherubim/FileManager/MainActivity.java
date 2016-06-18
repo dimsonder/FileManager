@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -23,6 +24,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -36,15 +38,17 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends ListActivity {
+
+    String rootpath;
     // 显示操作菜单
-    String[] menu = {"打开", "重命名", "删除", "复制", "剪切"};
+    String[] menu = {"打开", "重命名", "删除", "复制", "剪切","分享"};
     private File currentDirectory = new File("/");
 
     private List<IconifiedText> directoryEntries;
 
     private File myTmpFile = null;
     private int myTmpOpt = -1;
-    private  Boolean isExit = false;
+    private Boolean isExit = false;
     private long exitTime = 0;
 
 
@@ -53,7 +57,7 @@ public class MainActivity extends ListActivity {
      *
      * @return 应用程序是/否获取Root权限
      */
-    public static boolean upgradeRootPermission(String pkgCodePath) {
+   /* public static boolean upgradeRootPermission(String pkgCodePath) {
         Process process = null;
         DataOutputStream os = null;
         try {
@@ -74,11 +78,22 @@ public class MainActivity extends ListActivity {
                 process.destroy();
             } catch (Exception e) {
             }
+
         }
         return true;
+    }*/
+
+    //文件过滤器，过滤掉以"."开头的文件
+    class MyFilter implements FileFilter {
+
+        @Override
+        public boolean accept(File f) {
+            if (f.getName().startsWith("."))
+                return false;
+            else
+                return true;
+        }
     }
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,7 +105,9 @@ public class MainActivity extends ListActivity {
     // 浏览文件系统的根目录
     //浏览根目录
     private void browseToRoot() {
-        browseTo(new File("/"));
+     rootpath = Environment.getExternalStorageDirectory().toString();
+        browseTo(
+                new File(rootpath));
     }
 
     //打开文件
@@ -115,6 +132,8 @@ public class MainActivity extends ListActivity {
 
     }
 
+    //listView源
+
     private void filiation(File[] files) {
         // 清空列表
         this.directoryEntries.clear();
@@ -131,6 +150,7 @@ public class MainActivity extends ListActivity {
                     .getDrawable(R.mipmap.uponlevel)));
 
         Drawable currentIcon = null;
+
         for (File currentFile : files) {    // 判断是一个文件夹还是一个文件
             if (currentFile.isDirectory()) {
                 currentIcon = getResources().getDrawable(R.mipmap.format_folder);
@@ -175,7 +195,7 @@ public class MainActivity extends ListActivity {
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
-        upgradeRootPermission(getPackageCodePath());
+        //upgradeRootPermission(getPackageCodePath());
         // 取得选中的一项的文件名
         String selectedFileString = this.directoryEntries.get(position).getText();
 
@@ -205,6 +225,8 @@ public class MainActivity extends ListActivity {
         return false;
     }
 
+
+    //菜单上的按钮
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
         menu.add(0, 0, 2, "新建目录").setIcon(R.mipmap.newfolder);
@@ -218,6 +240,7 @@ public class MainActivity extends ListActivity {
 
 
     @Override
+    //菜单事件
     public boolean onOptionsItemSelected(MenuItem item) {
         super.onOptionsItemSelected(item);
         switch (item.getItemId()) {
@@ -244,11 +267,10 @@ public class MainActivity extends ListActivity {
         return false;
 
     }
-    //按下按钮
+    //按下按钮事件
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-
 
 
         if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -258,7 +280,7 @@ public class MainActivity extends ListActivity {
             } else {
                 //exitBy2Click();
                 //更为简洁的双击退出方法
-                if((System.currentTimeMillis()-exitTime) > 2000){
+                if ((System.currentTimeMillis() - exitTime) > 2000) {
                     Toast.makeText(getApplicationContext(), "再按一次退出程序", Toast.LENGTH_SHORT).show();
                     exitTime = System.currentTimeMillis();
                 } else {
@@ -269,12 +291,12 @@ public class MainActivity extends ListActivity {
             }
 
         }
-        return true;
+        return false;//返回false可以继续执行Menu弹出菜单！！！否则菜单失效
     }
     //返回按钮返回上一级而不是退出
-    //双击退出
+    //双击退出的另一种实现
 
-    private void exitBy2Click() {
+    /*private void exitBy2Click() {
         Timer tExit = null;
         if (isExit == false) {
             isExit = true; // 准备退出
@@ -291,7 +313,7 @@ public class MainActivity extends ListActivity {
             finish();
             System.exit(0);
         }
-    }
+    }*/
 
    /* @Override
     public void onBackPressed() {
@@ -371,6 +393,19 @@ public class MainActivity extends ListActivity {
     //移动
     public void moveFile(String source, String destination) {
         new File(source).renameTo(new File(destination));
+    }
+
+    public void shareFile(File mFile) {
+
+
+        Intent share = new Intent(Intent.ACTION_SEND);
+        Uri uri=Uri.fromFile(mFile);
+        share.setType("*/*");//此处可发送多种文件
+        share.putExtra(Intent.EXTRA_STREAM,uri);
+
+
+        startActivity(share);
+
     }
 
 
@@ -668,20 +703,25 @@ public class MainActivity extends ListActivity {
                     myTmpOpt = 0;
                 } else if (which == 4)// 剪切
                 {      // 保存我们复制的文件目录
-                    myTmpFile = file;      // 这里我们用 0 表示剪切操作
+                    myTmpFile = file;
+                    // 这里我们用 1 表示剪切操作
                     myTmpOpt = 1;
+                } else if (which == 5) {
+                    shareFile(file);
                 }
             }
         };
-        new AlertDialog.Builder(MainActivity.this).setTitle("请选择你要进行的操作").setItems(menu, listener).show();
+        new AlertDialog.Builder(MainActivity.this).setTitle("请选择要进行的操作").setItems(menu, listener).show();
     }
 
 
     private void browseTo(final File file) {
         if (!file.exists()) {
+
             Log.i("sgsg", "gsegs");
         } else {
             this.setTitle(file.getAbsolutePath());
+
             if (file.isDirectory()) {
                 this.currentDirectory = file;
                 filiation(file.listFiles());
