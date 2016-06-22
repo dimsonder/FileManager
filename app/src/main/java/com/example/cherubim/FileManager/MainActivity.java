@@ -38,8 +38,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends ListActivity {
+    String path;
 
-    String rootpath;
     // 显示操作菜单
     String[] menu = {"打开", "重命名", "删除", "复制", "剪切","分享"};
     private File currentDirectory = new File("/");
@@ -105,9 +105,10 @@ public class MainActivity extends ListActivity {
     // 浏览文件系统的根目录
     //浏览根目录
     private void browseToRoot() {
-     rootpath = Environment.getExternalStorageDirectory().toString();
-        browseTo(
-                new File(rootpath));
+
+
+
+        browseTo(Environment.getExternalStorageDirectory());
     }
 
     //打开文件
@@ -150,46 +151,49 @@ public class MainActivity extends ListActivity {
                     .getDrawable(R.mipmap.uponlevel)));
 
         Drawable currentIcon = null;
+        if (files!=null) {
 
-        for (File currentFile : files) {    // 判断是一个文件夹还是一个文件
-            if (currentFile.isDirectory()) {
-                currentIcon = getResources().getDrawable(R.mipmap.format_folder);
-            } else {
-                // 取得文件名
-                String fileName = currentFile.getName();
-                // 根据文件名来判断文件类型，设置不同的图标
-                if (checkEndsWithInStringArray(fileName, getResources().getStringArray(R.array.fileEndingImage))) {
-                    currentIcon = getResources().getDrawable(R.mipmap.format_picture);
-                } else if (checkEndsWithInStringArray(fileName, getResources().getStringArray(R.array.fileEndingWebText))) {
-
-                    currentIcon = getResources().getDrawable(R.mipmap.format_html);
-                } else if (checkEndsWithInStringArray(fileName, getResources().getStringArray(R.array.fileEndingPackage))) {
-                    currentIcon = getResources().getDrawable(R.mipmap.format_zip);
-                } else if (checkEndsWithInStringArray(fileName, getResources().getStringArray(R.array.fileEndingAudio))) {
-                    currentIcon = getResources().getDrawable(R.mipmap.format_music);
-                } else if (checkEndsWithInStringArray(fileName, getResources().getStringArray(R.array.fileEndingVideo))) {
-                    currentIcon = getResources().getDrawable(R.mipmap.format_media);
+            for (File currentFile : files) {    // 判断是一个文件夹还是一个文件
+                if (currentFile.isDirectory()) {
+                    currentIcon = getResources().getDrawable(R.mipmap.format_folder);
                 } else {
-                    currentIcon = getResources().getDrawable(R.mipmap.format_text);
+                    // 取得文件名
+                    String fileName = currentFile.getName();
+                    // 根据文件名来判断文件类型，设置不同的图标
+                    if (checkEndsWithInStringArray(fileName, getResources().getStringArray(R.array.fileEndingImage))) {
+                        currentIcon = getResources().getDrawable(R.mipmap.format_picture);
+                    } else if (checkEndsWithInStringArray(fileName, getResources().getStringArray(R.array.fileEndingWebText))) {
+
+                        currentIcon = getResources().getDrawable(R.mipmap.format_html);
+                    } else if (checkEndsWithInStringArray(fileName, getResources().getStringArray(R.array.fileEndingPackage))) {
+                        currentIcon = getResources().getDrawable(R.mipmap.format_zip);
+                    } else if (checkEndsWithInStringArray(fileName, getResources().getStringArray(R.array.fileEndingAudio))) {
+                        currentIcon = getResources().getDrawable(R.mipmap.format_music);
+                    } else if (checkEndsWithInStringArray(fileName, getResources().getStringArray(R.array.fileEndingVideo))) {
+                        currentIcon = getResources().getDrawable(R.mipmap.format_media);
+                    } else {
+                        currentIcon = getResources().getDrawable(R.mipmap.format_text);
+                    }
+                }    // 确保只显示文件名、不显示路径如：/sdcard/111.txt 就只是显示 111.txt
+                int currentPathStringLenght = 0;
+                if (this.currentDirectory.getParent() != null) {
+                    currentPathStringLenght = GetCurDirectory().length();
+                } else {
+                    currentPathStringLenght = this.currentDirectory.getAbsolutePath().length();
                 }
-            }    // 确保只显示文件名、不显示路径如：/sdcard/111.txt 就只是显示 111.txt
-            int currentPathStringLenght = 0;
-            if (this.currentDirectory.getParent() != null) {
-                currentPathStringLenght = GetCurDirectory().length();
-            } else {
-                currentPathStringLenght = this.currentDirectory.getAbsolutePath().length();
+
+                this.directoryEntries.add(new IconifiedText((currentFile.getAbsolutePath()).substring(currentPathStringLenght), currentIcon));
+
             }
-
-            this.directoryEntries.add(new IconifiedText((currentFile.getAbsolutePath()).substring(currentPathStringLenght), currentIcon));
-
         }
-        Collections.sort(this.directoryEntries);
-        IconifiedTextListAdapter itla = new IconifiedTextListAdapter(this);
-        // 将表设置到 ListAdapter 中
-        itla.setListItems(this.directoryEntries);
-        // 为 ListActivity 添加一个 ListAdapter
-        this.setListAdapter(itla);
-    }
+            Collections.sort(this.directoryEntries);
+            IconifiedTextListAdapter itla = new IconifiedTextListAdapter(this);
+            // 将表设置到 ListAdapter 中
+            itla.setListItems(this.directoryEntries);
+            // 为 ListActivity 添加一个 ListAdapter
+            this.setListAdapter(itla);
+        }
+
 
 
     @Override
