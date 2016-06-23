@@ -43,7 +43,7 @@ public class StartView extends View
 		p1.setTextSize(getWidth()/7);
 		//canvas.drawColor(Color.alpha(0x00));
 
-		canvas.drawText("By Cherubim github.com/qq0313/FileManager",X-50,Y,p2);
+		canvas.drawText("By Cherubim github.com/qq0313/FileManager",X-60,Y,p2);
 		canvas.drawText("文件管理器",getWidth()/2-getWidth()/3,getHeight()/2,p1);
 		if(Y<cY){
 			
