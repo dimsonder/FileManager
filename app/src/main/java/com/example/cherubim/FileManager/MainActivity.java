@@ -57,31 +57,34 @@ public class MainActivity extends ListActivity {
      *
      * @return 应用程序是/否获取Root权限
      */
-   /* public static boolean upgradeRootPermission(String pkgCodePath) {
-        Process process = null;
-        DataOutputStream os = null;
-        try {
-            String cmd = "chmod 777 " + pkgCodePath;
-            process = Runtime.getRuntime().exec("su"); //切换到root帐号
-            os = new DataOutputStream(process.getOutputStream());
-            os.writeBytes(cmd + "\n");
-            os.writeBytes("exit\n");
-            os.flush();
-            process.waitFor();
-        } catch (Exception e) {
-            return false;
-        } finally {
-            try {
-                if (os != null) {
-                    os.close();
-                }
-                process.destroy();
-            } catch (Exception e) {
-            }
 
-        }
-        return true;
-    }*/
+
+   /*public static boolean upgradeRootPermission(String pkgCodePath) {
+
+       Process process = null;
+       DataOutputStream os = null;
+       try {
+           String cmd = "chmod 777 " + pkgCodePath;
+           process = Runtime.getRuntime().exec("su"); // 切换到root帐号
+           os = new DataOutputStream(process.getOutputStream());
+           os.writeBytes(cmd + "\n");
+           os.writeBytes("exit\n");
+           os.flush();
+           process.waitFor();
+       } catch (Exception e) {
+           // return false;
+       } finally {
+           try {
+               if (os != null) {
+                   os.close();
+               }
+               process.destroy();
+           } catch (Exception e) {
+           }
+       }
+       return true;
+   }*/
+
 
     //文件过滤器，过滤掉以"."开头的文件
     class MyFilter implements FileFilter {
@@ -105,7 +108,6 @@ public class MainActivity extends ListActivity {
     // 浏览文件系统的根目录
     //浏览根目录
     private void browseToRoot() {
-
 
 
         browseTo(Environment.getExternalStorageDirectory());
@@ -138,6 +140,7 @@ public class MainActivity extends ListActivity {
     private void filiation(File[] files) {
         // 清空列表
         this.directoryEntries.clear();
+        //upgradeRootPermission(getPackageCodePath());
 
         // 添加一个当前目录的选项
         this.directoryEntries.add(new IconifiedText(getString(R.string.renovate),
@@ -259,7 +262,8 @@ public class MainActivity extends ListActivity {
                 MyPaste();
                 break;
             case 3:
-                this.browseToRoot();
+                File file=new File("/");
+                this.browseTo(file);
                 break;
             case 4:
                 this.upOneLevel();
@@ -720,6 +724,7 @@ public class MainActivity extends ListActivity {
 
 
     private void browseTo(final File file) {
+//        upgradeRootPermission(getPackageCodePath());
         if (!file.exists()) {
 
             Log.i("sgsg", "gsegs");
